@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCreate | Sustainable Mix Intelligence</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #16a34a;        /* Emerald 600 */
+            --primary-hover: #15803d;  /* Emerald 700 */
+            --bg-body: #f8fafc;        /* Slate 50 */
+            --bg-card: #ffffff;
+            --text-main: #1e293b;      /* Slate 800 */
+            --text-muted: #64748b;     /* Slate 500 */
+            --border: #e2e8f0;         /* Slate 200 */
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            font-family: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 8%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+        .nav-item:hover, .nav-item.active { color: var(--primary); }
+
+        .btn-cta {
+            background: var(--primary);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn-cta:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        /* --- SECTIONS --- */
+        section {
+            min-height: 90vh;
+            padding: 60px 8%;
+            display: none; /* Hidden by default, JS toggles this */
+            animation: fadeIn 0.5s ease;
+        }
+        section.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- HOME PAGE HERO --- */
+        .hero-content {
+            max-width: 800px;
+            margin: 60px auto;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: #0f172a;
+        }
+        
+        .hero-title span { color: var(--primary); }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 80px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            text-align: left;
+            transition: 0.3s;
+        }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: var(--primary); }
+        .feature-icon { font-size: 2rem; margin-bottom: 15px; display: block; }
+
+        /* --- ESTIMATOR PAGE --- */
+        .estimator-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 50px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .input-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            height: fit-content;
+            box-shadow: var(--shadow);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 1rem;
+            background: #f8fafc;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { background: var(--primary-hover); }
+
+        /* --- OUTPUT AREA --- */
+        .output-card {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-box {
+            flex: 1;
+            background: #f0fdf4;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .kpi-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-hover);
+        }
+        .kpi-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+        .table-container { margin-top: 20px; }
+        .mix-table { width: 100%; border-collapse: collapse; }
+        .mix-table td { padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        .mix-table td:last-child { text-align: right; font-weight: 700; }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .estimator-layout { grid-template-columns: 1fr; }
+            .hero-title { font-size: 2.5rem; }
+            nav { padding: 1rem 5%; }
+            .nav-links { display: none; } /* Simplified for mobile */
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo" onclick="showPage('home')">
+            🌿 EcoCreate
+        </div>
+        <div class="nav-links">
+            <div class="nav-item active" id="nav-home" onclick="showPage('home')">Home</div>
+            <div class="nav-item" id="nav-estimate" onclick="showPage('estimator')">Predictor</div>
+        </div>
+        <button class="btn-cta" onclick="showPage('estimator')">Get Proportions</button>
+    </nav>
+
+    <section id="home-view" class="active">
+        <div class="hero-content">
+            <h1 class="hero-title">Optimize Concrete with <br><span>Artificial Intelligence</span></h1>
+            <p class="hero-desc">
+                EcoCreate replaces reactive testing with predictive intelligence. 
+                Input your strength requirements and available materials, and our AI will generate the 
+                optimal mix design that minimizes CO2 emissions and cost instantly.
+            </p>
+            <button class="btn-cta" style="padding: 15px 40px; font-size: 1.1rem;" onclick="showPage('estimator')">
+                Start Optimization
+            </button>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="feature-icon">⚡</span>
+                <h3>Real-Time Analysis</h3>
+                <p style="color:var(--text-muted); margin-top:10px;">Get mix proportions in milliseconds using our field-validated CatBoost algorithm.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🌱</span>
+                <h3>Carbon Reduction</h3>
+                <p style="color:var(--text-muted); margin-top:10px;">Automatically prioritize low-carbon materials like Fly Ash and GGBS to meet sustainability targets.</p>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">💰</span>
+                <h3>Cost Efficiency</h3>
+                <p style="color:var(--text-muted); margin-top:10px;">Minimize material costs without compromising on compressive strength or durability.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <section id="estimator-view">
+        <h2 style="margin-bottom: 30px; text-align: center; font-size: 2rem;">Mix Design Predictor</h2>
+        
+        <div class="estimator-layout">
+            
+            <div class="input-card">
+                <h3 style="margin-bottom: 25px; color: var(--primary);">Input Parameters</h3>
+                
+                <form id="opt-form" onsubmit="event.preventDefault(); optimizeMix();">
+                    
+                    <label>Desired Strength (MPa)</label>
+                    <input type="number" id="inp_strength" placeholder="e.g. 40" min="5" step="5">
+
+                    <label>Target Days</label>
+                    <input type="number" id="inp_days" placeholder="e.g. 28" min="1" step="1"required>
+
+                    <label>Available Materials</label>
+                    <select id="inp_materials">
+                        <option value="opc">OPC 53 (Ordinary Portland Cement)</option>
+                        <option value="opc_fa">OPC + Fly Ash</option>
+                        <option value="opc_ggbs">OPC + GGBS</option>
+                        <option value="opc_all">OPC + GGBS + Fly Ash</option>
+                    </select>
+
+                    <button type="submit" class="btn-submit" id="btn-submit">
+                        Generate Optimized Mix
+                    </button>
+                </form>
+            </div>
+
+            <div class="output-card">
+                
+                <div id="loading-state" style="display: none; text-align: center;">
+                    <div style="font-size: 3rem; animation: spin 1s infinite linear;">🔄</div>
+                    <p style="margin-top: 15px; color: var(--text-muted);">AI is calculating optimal proportions...</p>
+                </div>
+
+                <div id="welcome-msg" style="text-align: center; padding: 40px;">
+                    <span style="font-size: 4rem; display: block; margin-bottom: 20px;">🏗️</span>
+                    <h3 style="color: var(--text-main);">Ready to Optimize</h3>
+                    <p style="color: var(--text-muted);">Fill in the details on the left to get your mix design.</p>
+                </div>
+
+                <div id="results-area" style="display: none;">
+                    
+                    <div class="kpi-container">
+                        <div class="kpi-box">
+                            <span class="kpi-value" id="res-cost">₹0</span>
+                            <span class="kpi-label">Cost / m³</span>
+                        </div>
+                        <div class="kpi-box" style="background: #ecfeff; border-color: #a5f3fc;">
+                            <span class="kpi-value" id="res-co2" style="color: #0891b2;">0</span>
+                            <span class="kpi-label">kg CO₂ / m³</span>
+                        </div>
+                        <div class="kpi-box" style="background: #fff7ed; border-color: #fed7aa;">
+                            <span class="kpi-value" id="res-strength" style="color: #ea580c;">0</span>
+                            <span class="kpi-label">Target Strength</span>
+                        </div>
+                    </div>
+
+                    <div style="height: 250px; width: 100%; position: relative;">
+                        <canvas id="mixChart"></canvas>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="mix-table">
+                            <tbody id="mix-table-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // SPA Navigation Logic
+        function showPage(pageId) {
+            document.getElementById('home-view').classList.remove('active');
+            document.getElementById('estimator-view').classList.remove('active');
+            document.getElementById('nav-home').classList.remove('active');
+            document.getElementById('nav-estimate').classList.remove('active');
+
+            if (pageId === 'home') {
+                document.getElementById('home-view').classList.add('active');
+                document.getElementById('nav-home').classList.add('active');
+            } else {
+                document.getElementById('estimator-view').classList.add('active');
+                document.getElementById('nav-estimate').classList.add('active');
+            }
+            window.scrollTo(0,0);
+        }
+
+        let myChart = null;
+
+        async function optimizeMix() {
+            // UI Transition
+            document.getElementById('welcome-msg').style.display = 'none';
+            document.getElementById('results-area').style.display = 'none';
+            document.getElementById('loading-state').style.display = 'block';
+            document.getElementById('btn-submit').innerText = "Processing...";
+            document.getElementById('btn-submit').disabled = true;
+
+            // 1. GATHER INPUTS
+            const strength = document.getElementById('inp_strength').value;
+            const days = document.getElementById('inp_days').value;
+            const materialType = document.getElementById('inp_materials').value;
+
+            // 2. CONSTRUCT FORMDATA (Mapping Dropdown -> Backend Variables)
+            // Backend expects: 'target_strength', 'target_days', 'has_fa', 'has_ggbs'
+            const formData = new FormData();
+            formData.append('target_strength', strength);
+            formData.append('target_days', days);
+
+            // Logic to convert Selection to Checkbox-style variables
+            if (materialType === 'opc_fa' || materialType === 'opc_all') {
+                formData.append('has_fa', 'on');
+            }
+            if (materialType === 'opc_ggbs' || materialType === 'opc_all') {
+                formData.append('has_ggbs', 'on');
+            }
+            // Note: If 'opc' (Option 1) is selected, we simply don't append has_fa or has_ggbs
+
+            try {
+                // 3. SEND TO FLASK
+                const response = await fetch('/optimize', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error("Server Error");
+
+                const data = await response.json();
+
+                // 4. UPDATE UI
+                document.getElementById('res-cost').innerText = `₹${data.cost}`;
+                document.getElementById('res-co2').innerText = `${data.co2}`;
+                document.getElementById('res-strength').innerText = `${data.pred_strength} MPa`;
+
+                // Update Table
+                const tbody = document.getElementById('mix-table-body');
+                tbody.innerHTML = `
+                    <tr><td>Cement</td><td>${data.Cement} kg</td></tr>
+                    ${data.FlyAsh > 0 ? `<tr><td>Fly Ash</td><td>${data.FlyAsh} kg</td></tr>` : ''}
+                    ${data.GGBS > 0 ? `<tr><td>GGBS</td><td>${data.GGBS} kg</td></tr>` : ''}
+                    <tr><td>Water</td><td>${data.Water} kg</td></tr>
+                    <tr><td>Coarse Aggregate</td><td>${data.CoarseAggregate} kg</td></tr>
+                    <tr><td>Fine Aggregate (Sand)</td><td>${data.Sand} kg</td></tr>
+                    <tr><td>Admixture</td><td>${data.Admix} L</td></tr>
+                `;
+
+                // Update Chart
+                const ctx = document.getElementById('mixChart').getContext('2d');
+                if (myChart) myChart.destroy();
+
+                myChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cement', 'Fly Ash', 'GGBS', 'Water', 'Aggregates', 'Sand'],
+                        datasets: [{
+                            data: [
+                                data.Cement, 
+                                data.FlyAsh, 
+                                data.GGBS, 
+                                data.Water, 
+                                data.Agg20 + data.Agg10, 
+                                data.Sand
+                            ],
+                            backgroundColor: [
+                                '#16a34a', // Green
+                                '#64748b', // Gray
+                                '#94a3b8', // Light Gray
+                                '#3b82f6', // Blue
+                                '#f59e0b', // Orange
+                                '#eab308'  // Yellow
+                            ],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' }
+                        }
+                    }
+                });
+
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('results-area').style.display = 'block';
+                document.getElementById('btn-submit').innerText = "Generate Optimized Mix";
+                document.getElementById('btn-submit').disabled = false;
+
+            } catch (error) {
+                console.error(error);
+                alert("Optimization Failed. Please check inputs.");
+                document.getElementById('loading-state').style.display = 'none';
+                document.getElementById('welcome-msg').style.display = 'block';
+                document.getElementById('btn-submit').innerText = "Try Again";
+                document.getElementById('btn-submit').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
