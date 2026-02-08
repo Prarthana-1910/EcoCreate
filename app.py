@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # ---------------- LOAD MODEL ----------------
 try:
-    model = joblib.load(r"models\Tuned_CatBoost.joblib")
+    model = joblib.load("models/Tuned_CatBoost.joblib")
     print("✅ Model loaded.")
 except:
     print("❌ Model loading failed.")
