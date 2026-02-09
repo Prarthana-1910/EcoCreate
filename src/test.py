@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 
 df=pd.read_csv("data/features.csv")
 
-X = df[['Cement', 'GGBS', 'FlyAsh', 'Water', 'CoarseAggregate', 'Sand', 'Admixture', 'WBRatio', 'age']]
+X = df[["Binder","WBRatio","FA_ratio","GGBS_ratio","Sand_ratio","Agg_Binder","Paste_volume", 'age']]
 y = df['Strength']
 
 scaler = StandardScaler()
@@ -17,10 +17,10 @@ X_scaled = scaler.fit_transform(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 models={
-    "AdaBoost":"models\AdaBoost_pipeline.joblib",
-    "Random Forest":"models\RandomForest_pipeline.joblib",
-    "Cat_Boost":"models\CatBoost_pipeline.joblib",
-    "XGBoost":"models\XGBoost_pipeline.joblib"
+    "AdaBoost":"models/AdaBoost_pipeline.joblib",
+    "Random Forest":"models/RandomForest_pipeline.joblib",
+    "Cat_Boost":"models/CatBoost_pipeline.joblib",
+    "XGBoost":"models/XGBoost_pipeline.joblib"
 }
 
 table=PrettyTable()

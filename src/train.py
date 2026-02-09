@@ -17,7 +17,7 @@ from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_
 
 df = pd.read_csv(r"data\features.csv")
 
-X = df[['Cement', 'GGBS', 'FlyAsh', 'Water', 'CoarseAggregate', 'Sand', 'Admixture', 'WBRatio', 'age']]
+X = df[["Binder","WBRatio","FA_ratio","GGBS_ratio","Sand_ratio","Agg_Binder","Paste_volume", 'age']]
 y = df['Strength']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -35,10 +35,6 @@ models = {
     "AdaBoost": Pipeline([
         ('scaler', StandardScaler()),
         ('regressor', AdaBoostRegressor(n_estimators=100))
-    ]),
-    "GaussianProcess": Pipeline([
-        ('scaler', StandardScaler()),
-        ('regressor', GaussianProcessRegressor())
     ]),
     "CatBoost": Pipeline([ 
         ('scaler', StandardScaler()), 
@@ -91,125 +87,125 @@ print(results_df)
 
 
 
-# # Hyperparameter tuning
-# # ================= MODEL CONFIGURATION =================
+# Hyperparameter tuning
+# ================= MODEL CONFIGURATION =================
 
-# model_configs = {
-#     "CatBoost": {
-#         "estimator": CatBoostRegressor(verbose=0, random_state=42),
-#         "param_grid": {
-#             'regressor__iterations': [300, 500, 800],
-#             'regressor__depth': [4, 6, 8],
-#             'regressor__learning_rate': [0.01, 0.05, 0.1],
-#             'regressor__l2_leaf_reg': [1, 3, 5, 7]
-#         },
-#         "random_iter": 15
-#     },
+model_configs = {
+    "CatBoost": {
+        "estimator": CatBoostRegressor(verbose=0, random_state=42),
+        "param_grid": {
+            'regressor__iterations': [300, 500, 800],
+            'regressor__depth': [4, 6, 8],
+            'regressor__learning_rate': [0.01, 0.05, 0.1],
+            'regressor__l2_leaf_reg': [1, 3, 5, 7]
+        },
+        "random_iter": 15
+    },
 
-#     "XGBoost": {
-#         "estimator": XGBRegressor(
-#             objective='reg:squarederror',
-#             random_state=42,
-#             n_jobs=-1
-#         ),
-#         "param_grid": {
-#             'regressor__n_estimators': [300, 600],
-#             'regressor__max_depth': [4, 6],
-#             'regressor__learning_rate': [0.03, 0.1],
-#             'regressor__subsample': [0.8, 1.0],
-#             'regressor__colsample_bytree': [0.8, 1.0]
-#         },
-#         "random_iter": 25
-#     }
-# }
-
-
-# # ================= PIPELINE CREATOR =================
-
-# def create_pipeline(model, model_name):
-#     if model_name == "CatBoost":
-#         return Pipeline([
-#             ('regressor', model)  # No scaling for CatBoost
-#         ])
-#     else:
-#         return Pipeline([
-#             ('scaler', StandardScaler()),
-#             ('regressor', model)
-#         ])
+    "XGBoost": {
+        "estimator": XGBRegressor(
+            objective='reg:squarederror',
+            random_state=42,
+            n_jobs=-1
+        ),
+        "param_grid": {
+            'regressor__n_estimators': [300, 600],
+            'regressor__max_depth': [4, 6],
+            'regressor__learning_rate': [0.03, 0.1],
+            'regressor__subsample': [0.8, 1.0],
+            'regressor__colsample_bytree': [0.8, 1.0]
+        },
+        "random_iter": 25
+    }
+}
 
 
-# # ================= SEARCH FUNCTION =================
+# ================= PIPELINE CREATOR =================
 
-# def run_search(model_name, config, X_train, y_train):
-#     results = []
-#     param_grid = deepcopy(config["param_grid"])   # Prevent mutation
-#     pipeline = create_pipeline(config["estimator"], model_name)
-
-#     # -------- GRID SEARCH --------
-#     print(f"\n🔍 Grid Search — {model_name}")
-#     start = time.time()
-
-#     grid = GridSearchCV(
-#         pipeline,
-#         param_grid,
-#         cv=3,
-#         n_jobs=-1,
-#         scoring='r2',
-#         error_score='raise',
-#         verbose=1
-#     )
-#     grid.fit(X_train, y_train)
-
-#     results.append({
-#         "Model": model_name,
-#         "Method": "Grid Search",
-#         "Best R2": grid.best_score_,
-#         "Time (s)": time.time() - start
-#     })
-
-#     # -------- RANDOM SEARCH --------
-#     print(f"\n🎲 Random Search — {model_name}")
-#     start = time.time()
-
-#     random = RandomizedSearchCV(
-#         pipeline,
-#         param_grid,
-#         n_iter=config["random_iter"],
-#         cv=3,
-#         n_jobs=-1,
-#         scoring='r2',
-#         random_state=42,
-#         error_score='raise',
-#         verbose=1
-#     )
-#     random.fit(X_train, y_train)
-
-#     results.append({
-#         "Model": model_name,
-#         "Method": "Random Search",
-#         "Best R2": random.best_score_,
-#         "Time (s)": time.time() - start
-#     })
-
-#     # -------- SAVE BEST MODEL --------
-#     best_model = grid.best_estimator_
-#     path = f"models/Tuned_{model_name}.joblib"
-#     joblib.dump(best_model, path)
-
-#     print(f"✅ {model_name} best model saved → {path}")
-#     print(f"Best Parameters:\n{grid.best_params_}")
-
-#     return results
+def create_pipeline(model, model_name):
+    if model_name == "CatBoost":
+        return Pipeline([
+            ('regressor', model)  # No scaling for CatBoost
+        ])
+    else:
+        return Pipeline([
+            ('scaler', StandardScaler()),
+            ('regressor', model)
+        ])
 
 
-# # ================= RUN ALL MODELS =================
+# ================= SEARCH FUNCTION =================
 
-# all_results = []
+def run_search(model_name, config, X_train, y_train):
+    results = []
+    param_grid = deepcopy(config["param_grid"])   # Prevent mutation
+    pipeline = create_pipeline(config["estimator"], model_name)
 
-# for model_name, config in model_configs.items():
-#     all_results.extend(run_search(model_name, config, X_train, y_train))
+    # -------- GRID SEARCH --------
+    print(f"\n🔍 Grid Search — {model_name}")
+    start = time.time()
 
-# comparison_df = pd.DataFrame(all_results)
+    grid = GridSearchCV(
+        pipeline,
+        param_grid,
+        cv=3,
+        n_jobs=-1,
+        scoring='r2',
+        error_score='raise',
+        verbose=1
+    )
+    grid.fit(X_train, y_train)
 
-# print("\n📊 --- Overall Hyperparameter Tuning Comparison ---")
-# print(comparison_df)
+    results.append({
+        "Model": model_name,
+        "Method": "Grid Search",
+        "Best R2": grid.best_score_,
+        "Time (s)": time.time() - start
+    })
+
+    # -------- RANDOM SEARCH --------
+    print(f"\n🎲 Random Search — {model_name}")
+    start = time.time()
+
+    random = RandomizedSearchCV(
+        pipeline,
+        param_grid,
+        n_iter=config["random_iter"],
+        cv=3,
+        n_jobs=-1,
+        scoring='r2',
+        random_state=42,
+        error_score='raise',
+        verbose=1
+    )
+    random.fit(X_train, y_train)
+
+    results.append({
+        "Model": model_name,
+        "Method": "Random Search",
+        "Best R2": random.best_score_,
+        "Time (s)": time.time() - start
+    })
+
+    # -------- SAVE BEST MODEL --------
+    best_model = grid.best_estimator_
+    path = f"models/Tuned_{model_name}.joblib"
+    joblib.dump(best_model, path)
+
+    print(f"✅ {model_name} best model saved → {path}")
+    print(f"Best Parameters:\n{grid.best_params_}")
+
+    return results
+
+
+# ================= RUN ALL MODELS =================
+
+all_results = []
+
+for model_name, config in model_configs.items():
+    all_results.extend(run_search(model_name, config, X_train, y_train))
+
+comparison_df = pd.DataFrame(all_results)
+
+print("\n📊 --- Overall Hyperparameter Tuning Comparison ---")
+print(comparison_df)

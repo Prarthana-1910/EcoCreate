@@ -29,10 +29,29 @@ plt.show()
 
 """Feature Engineering"""
 #Creating features DataFrame
-df2=df.copy()
+df2=pd.DataFrame()
 
-#WBRatio
-df2["WBRatio"]=df["Water"]/(df["Cement"]+df["FlyAsh"]+df["GGBS"])
+# Total binder (cementitious materials)
+df2["Binder"] = df["Cement"] + df["GGBS"] + df["FlyAsh"]
 
+# Water–binder ratio
+df2["WBRatio"] = df["Water"] / df2["Binder"]
+
+# SCM contribution ratios
+df2["FA_ratio"] = df["FlyAsh"] / df2["Binder"]
+df2["GGBS_ratio"] = df["GGBS"] / df2["Binder"]
+
+# Aggregate packing structure
+df2["Sand_ratio"] = df["Sand"] / (df["Sand"] + df["CoarseAggregate"])
+
+# Aggregate skeleton strength
+df2["Agg_Binder"] = (df["Sand"] + df["CoarseAggregate"]) / df2["Binder"]
+
+# Paste volume (paste vs aggregate balance)
+df2["Paste_volume"] = (df["Water"] + df2["Binder"]) / (
+    df["Water"] + df2["Binder"] + df["Sand"] + df["CoarseAggregate"]
+)
+df2["Strength"] = df["Strength"]
+df2["age"]=df["age"]
 # Save df_copy to a CSV file
 df2.to_csv("data/features.csv", index=False)
