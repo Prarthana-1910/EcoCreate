@@ -9,13 +9,13 @@
 
     <style>
         :root {
-            --primary: #16a34a;        /* Emerald 600 */
-            --primary-hover: #15803d;  /* Emerald 700 */
-            --bg-body: #f8fafc;        /* Slate 50 */
+            --primary: #16a34a;
+            --primary-hover: #15803d;
+            --bg-body: #f8fafc;
             --bg-card: #ffffff;
-            --text-main: #1e293b;      /* Slate 800 */
-            --text-muted: #64748b;     /* Slate 500 */
-            --border: #e2e8f0;         /* Slate 200 */
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
             --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             font-family: 'Inter', sans-serif;
         }
@@ -29,7 +29,6 @@
             overflow-x: hidden;
         }
 
-        /* --- NAVIGATION --- */
         nav {
             display: flex;
             justify-content: space-between;
@@ -64,7 +63,11 @@
             color: var(--text-muted);
             transition: 0.3s;
         }
-        .nav-item:hover, .nav-item.active { color: var(--primary); }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--primary);
+        }
 
         .btn-cta {
             background: var(--primary);
@@ -76,24 +79,29 @@
             cursor: pointer;
             transition: transform 0.2s, background 0.2s;
         }
+
         .btn-cta:hover {
             background: var(--primary-hover);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
         }
 
-        /* --- SECTIONS --- */
         section {
             min-height: 90vh;
             padding: 60px 8%;
-            display: none; /* Hidden by default, JS toggles this */
+            display: none;
             animation: fadeIn 0.5s ease;
         }
-        section.active { display: block; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        section.active {
+            display: block;
+        }
 
-        /* --- HOME PAGE HERO --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .hero-content {
             max-width: 800px;
             margin: 60px auto;
@@ -106,8 +114,10 @@
             margin-bottom: 20px;
             color: #0f172a;
         }
-        
-        .hero-title span { color: var(--primary); }
+
+        .hero-title span {
+            color: var(--primary);
+        }
 
         .hero-desc {
             font-size: 1.2rem;
@@ -133,10 +143,19 @@
             text-align: left;
             transition: 0.3s;
         }
-        .feature-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: var(--primary); }
-        .feature-icon { font-size: 2rem; margin-bottom: 15px; display: block; }
 
-        /* --- ESTIMATOR PAGE --- */
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
         .estimator-layout {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
@@ -191,9 +210,11 @@
             cursor: pointer;
             transition: 0.3s;
         }
-        .btn-submit:hover { background: var(--primary-hover); }
 
-        /* --- OUTPUT AREA --- */
+        .btn-submit:hover {
+            background: var(--primary-hover);
+        }
+
         .output-card {
             background: white;
             padding: 40px;
@@ -211,7 +232,7 @@
             gap: 15px;
             margin-bottom: 30px;
         }
-        
+
         .kpi-box {
             flex: 1;
             background: #f0fdf4;
@@ -220,121 +241,119 @@
             text-align: center;
             border: 1px solid #bbf7d0;
         }
-        
+
         .kpi-value {
             display: block;
             font-size: 1.5rem;
             font-weight: 800;
             color: var(--primary-hover);
         }
-        .kpi-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
 
-        .table-container { margin-top: 20px; }
-        .mix-table { width: 100%; border-collapse: collapse; }
-        .mix-table td { padding: 12px 0; border-bottom: 1px solid var(--border); color: var(--text-main); }
-        .mix-table td:last-child { text-align: right; font-weight: 700; }
+        .kpi-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
 
-        /* Mobile Responsive */
+        .table-container {
+            margin-top: 20px;
+        }
+
+        .mix-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .mix-table th {
+            text-align: left;
+            padding: 10px 0;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+
+        .mix-table td {
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .mix-table td:last-child {
+            text-align: right;
+            font-weight: 700;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+        }
+
+        .chart-card canvas {
+            width: 100% !important;
+            height: 240px !important;
+            display: block;
+            margin: auto;
+        }
+
+        .chart-card h4 {
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            color: #64748b;
+        }
+
+        .gauge-note {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        .tip-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .app-footer {
+            margin-top: 40px;
+            padding: 14px 24px;
+            border-top: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #fefefe;
+            background: #16a34a;
+        }
+
+        .footer-left {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-right {
+            opacity: 0.9;
+        }
+
         @media (max-width: 900px) {
             .estimator-layout { grid-template-columns: 1fr; }
             .hero-title { font-size: 2.5rem; }
             nav { padding: 1rem 5%; }
-            .nav-links { display: none; } /* Simplified for mobile */
-        }
-        
-        /*addons*/
-        .chart-card{
-            background:white;
-            padding:20px;
-            border-radius:18px;
-            border:1px solid #e2e8f0;
-            box-shadow:0 6px 14px rgba(0,0,0,0.05);
+            .nav-links { display: none; }
         }
 
-        .chart-card canvas{
-            width:100% !important;
-            height:240px !important;
-            display:block;
-            margin:auto;
-        }
-
-        .chart-card h4{
-            margin-bottom:10px;
-            font-size:0.9rem;
-            letter-spacing:1px;
-            color:#64748b;
-        }
-
-        .chart-card h4{
-            text-align:center;
-            margin-bottom:12px;
-        }
-
-        .gauge-note{
-            text-align:center;
-            font-size:0.8rem;
-            color:#94a3b8;
-            margin-top:5px;
-        }
-
-        .tip-card{
-            background:#0f172a;
-            color:white;
-            padding:20px;
-            border-radius:18px;
-            margin-top:20px;
-        }
-
-        .tip-title{
-            font-weight:700;
-            margin-bottom:8px;
-        }
-
-        .mix-table th{
-            text-align:left;
-            padding:10px 0;
-            color:#64748b;
-            font-size:0.85rem;
-        }
-
-        .mix-table td{
-            padding:10px 0;
-            border-bottom:1px solid #e2e8f0;
-        }
-
-        .app-footer{
-            margin-top:40px;
-            padding:14px 24px;
-            border-top:none;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            font-size:0.85rem;
-            color:#fefefe;
-            background:#16a34a;
-        }
-
-        .footer-left{
-            font-weight:600;
-            letter-spacing:0.5px;
-        }
-
-        .footer-right{
-            opacity:0.9;
-        }
-
-        /* responsive */
-        @media (max-width:768px){
-            .app-footer{
-            flex-direction:column;
-            gap:6px;
-            text-align:center;
+        @media (max-width: 768px) {
+            .app-footer {
+                flex-direction: column;
+                gap: 6px;
+                text-align: center;
             }
         }
-
     </style>
 </head>
-
 <body>
 
     <nav>
@@ -352,9 +371,9 @@
         <div class="hero-content">
             <h1 class="hero-title">Optimize Concrete with <br><span>Artificial Intelligence</span></h1>
             <p class="hero-desc">
-                EcoCreate replaces reactive testing with predictive intelligence. 
-                Input your strength requirements and available materials, and our AI will generate the 
-                optimal mix design that minimizes CO2 emissions and cost instantly.
+                EcoCreate replaces reactive testing with predictive intelligence.
+                Input your strength requirements and available materials, and our AI will generate the
+                optimal mix design that minimizes CO₂ emissions and cost instantly.
             </p>
             <button class="btn-cta" style="padding: 15px 40px; font-size: 1.1rem;" onclick="showPage('estimator')">
                 Start Optimization
@@ -365,7 +384,7 @@
             <div class="feature-card">
                 <span class="feature-icon">⚡</span>
                 <h3>Real-Time Analysis</h3>
-                <p style="color:var(--text-muted); margin-top:10px;">Get mix proportions in milliseconds using our field-validated CatBoost algorithm.</p>
+                <p style="color:var(--text-muted); margin-top:10px;">Get mix proportions in milliseconds using our field-validated AI algorithm.</p>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">🌱</span>
@@ -380,29 +399,29 @@
         </div>
     </section>
 
-
     <section id="estimator-view">
         <h2 style="margin-bottom: 30px; text-align: center; font-size: 2rem;">Mix Design Predictor</h2>
-        
+
         <div class="estimator-layout">
-            
             <div class="input-card">
                 <h3 style="margin-bottom: 25px; color: var(--primary);">Input Parameters</h3>
-                
+
                 <form id="opt-form" onsubmit="event.preventDefault(); optimizeMix();">
-                    
                     <label>Desired Strength (MPa)</label>
-                    <input type="number" id="inp_strength" placeholder="e.g. 40" min="5" step="5">
+                    <input type="number" id="inp_strength" placeholder="e.g. 40" min="5" step="5" required>
 
                     <label>Target Days</label>
-                    <input type="number" id="inp_days" placeholder="e.g. 28" min="1" step="1"required>
+                    <input type="number" id="inp_days" placeholder="e.g. 28" min="28" required>
 
                     <label>Available Materials</label>
                     <select id="inp_materials">
                         <option value="opc">OPC 53 (Ordinary Portland Cement)</option>
                         <option value="opc_fa">OPC + Fly Ash</option>
                         <option value="opc_ggbs">OPC + GGBS</option>
-                        <option value="opc_all">OPC + GGBS + Fly Ash</option>
+                        <option value="opc_fa_ggbs">OPC + GGBS + Fly Ash</option>
+                        <option value="opc_fa_metakaolin">OPC + Fly Ash + Metakaolin</option>
+                        <option value="opc_ggbs_metakaolin">OPC + GGBS + Metakaolin</option>
+                        <option value="opc_all">OPC + Fly Ash + GGBS + Metakaolin</option>
                     </select>
 
                     <button type="submit" class="btn-submit" id="btn-submit">
@@ -411,9 +430,7 @@
                 </form>
             </div>
 
-            
             <div class="output-card">
-                
                 <div id="loading-state" style="display: none; text-align: center;">
                     <div style="font-size: 3rem; animation: spin 1s infinite linear;">🔄</div>
                     <p style="margin-top: 15px; color: var(--text-muted);">AI is calculating optimal proportions...</p>
@@ -426,77 +443,61 @@
                 </div>
 
                 <div id="results-area" style="display:none">
-
                     <div class="kpi-container">
-                    <div class="kpi-box">
-                    <span class="kpi-value" id="res-cost">₹0</span>
-                    <span class="kpi-label">Cost / m³</span>
+                        <div class="kpi-box">
+                            <span class="kpi-value" id="res-cost">₹0</span>
+                            <span class="kpi-label">Cost / m³</span>
+                        </div>
+                        <div class="kpi-box">
+                            <span class="kpi-value" id="res-co2">0</span>
+                            <span class="kpi-label">kg CO₂ / m³</span>
+                        </div>
+                        <div class="kpi-box">
+                            <span class="kpi-value" id="res-strength">0</span>
+                            <span class="kpi-label">Predicted Strength</span>
+                        </div>
                     </div>
-                    <div class="kpi-box">
-                    <span class="kpi-value" id="res-co2">0</span>
-                    <span class="kpi-label">kg CO₂ / m³</span>
-                    </div>
-                    <div class="kpi-box">
-                    <span class="kpi-value" id="res-strength">0</span>
-                    <span class="kpi-label">Predicted Strength</span>
-                    </div>
-                    </div>
-
-                    <!---Sustainabilty Tip--->
-                    <div class="tip-card">
-                    <div class="tip-title">ℹ Sustainability Tip</div>
-                    <div id="tip-text">
-                    Replacing 15% of cement with Fly Ash can reduce cost and CO₂ emissions.
-                    </div>
-                    </div>
-
-                    <!-- charts row -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:25px">
-
-                    <div class="chart-card">
-                    <h4>CO₂ Impact Score</h4>
-                    <canvas id="co2Gauge"></canvas>
-                    <p class="gauge-note">Compared to conventional OPC mix</p>
-                    </div>
-
-                    <div class="chart-card">
-                    <h4>Material Cost Distribution</h4>
-                    <canvas id="costChart"></canvas>
-                    </div>
-
-                    </div>
-
-                    <div class="chart-card" style="margin-bottom:20px">
-                    <h4>Material Distribution</h4>
-                    <div style="height:250px">
-                    <canvas id="mixChart"></canvas>
-                    </div>
-                    </div>
-
-                    <div class="table-container">
-                    <table class="mix-table">
-                    <thead>
-                    <tr>
-                    <th>Material</th>
-                    <th>Qty (kg/m³)</th>
-                    <th>Cost (₹)</th>
-                    </tr>
-                    </thead>
-                    <tbody id="mix-table-body"></tbody>
-                    </table>
-                    </div>
-
-                </div>
-
-            </div>
 
         
 
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:25px">
+                        <div class="chart-card">
+                            <h4>CO₂ Impact Score</h4>
+                            <canvas id="co2Gauge"></canvas>
+                            <p class="gauge-note">Compared to conventional OPC mix</p>
+                        </div>
+
+                        <div class="chart-card">
+                            <h4>Material Cost Distribution</h4>
+                            <canvas id="costChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card" style="margin-bottom:20px">
+                        <h4>Material Distribution</h4>
+                        <div style="height:250px">
+                            <canvas id="mixChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="mix-table">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Qty (kg/m³)</th>
+                                    <th>Cost (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mix-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <script>
-        // SPA Navigation Logic
         function showPage(pageId) {
             document.getElementById('home-view').classList.remove('active');
             document.getElementById('estimator-view').classList.remove('active');
@@ -510,197 +511,208 @@
                 document.getElementById('estimator-view').classList.add('active');
                 document.getElementById('nav-estimate').classList.add('active');
             }
-            window.scrollTo(0,0);
+
+            window.scrollTo(0, 0);
         }
 
         let myChart = null;
         let co2Chart = null;
         let costChart = null;
 
+
         async function optimizeMix() {
-            // UI Transition
             document.getElementById('welcome-msg').style.display = 'none';
             document.getElementById('results-area').style.display = 'none';
             document.getElementById('loading-state').style.display = 'block';
             document.getElementById('btn-submit').innerText = "Processing...";
             document.getElementById('btn-submit').disabled = true;
 
-            // 1. GATHER INPUTS
             const strength = document.getElementById('inp_strength').value;
             const days = document.getElementById('inp_days').value;
             const materialType = document.getElementById('inp_materials').value;
 
-            // 2. CONSTRUCT FORMDATA (Mapping Dropdown -> Backend Variables)
-            // Backend expects: 'target_strength', 'target_days', 'has_fa', 'has_ggbs'
             const formData = new FormData();
             formData.append('target_strength', strength);
             formData.append('target_days', days);
 
-            // Logic to convert Selection to Checkbox-style variables
-            if (materialType === 'opc_fa' || materialType === 'opc_all') {
-                formData.append('has_fa', 'on');
-            }
-            if (materialType === 'opc_ggbs' || materialType === 'opc_all') {
-                formData.append('has_ggbs', 'on');
-            }
-            // Note: If 'opc' (Option 1) is selected, we simply don't append has_fa or has_ggbs
-
-            try {
-                // 3. SEND TO FLASK
-                const response = await fetch('/optimize', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error("Server Error");
-
-                const data = await response.json();
-
-                // 4. UPDATE UI
-                document.getElementById('res-cost').innerText = `₹${data.cost}`;
-                document.getElementById('res-co2').innerText = `${data.co2}`;
-                document.getElementById('res-strength').innerText = `${data.pred_strength} MPa`;
-
-                // Update Table
-                const tbody = document.getElementById('mix-table-body');
-                tbody.innerHTML = `
-                    <tr><td>Cement</td><td>${data.Cement} kg</td></tr>
-                    ${data.FlyAsh > 0 ? `<tr><td>Fly Ash</td><td>${data.FlyAsh} kg</td></tr>` : ''}
-                    ${data.GGBS > 0 ? `<tr><td>GGBS</td><td>${data.GGBS} kg</td></tr>` : ''}
-                    <tr><td>Water</td><td>${data.Water} kg</td></tr>
-                    <tr><td>Coarse Aggregate</td><td>${data.CoarseAggregate} kg</td></tr>
-                    <tr><td>Fine Aggregate (Sand)</td><td>${data.Sand} kg</td></tr>
-                    <tr><td>Admixture</td><td>${data.Admix} L</td></tr>
-                `;
-
-                // Update Chart
-                // cost per material
-                const costCement = data.Cement * 0.15
-                const costFA = data.FlyAsh * 0.15
-                const costGGBS = data.GGBS * 0.15
-                const costWater = data.Water * 0.02
-                const costAgg = (data.Agg20 + data.Agg10) * 0.05
-                const costSand = data.Sand * 0.05
-
-                tbody.innerHTML = `
-                <tr><td>Cement</td><td>${data.Cement}</td><td>${costCement.toFixed(2)}</td></tr>
-                ${data.FlyAsh>0?`<tr><td>Fly Ash</td><td>${data.FlyAsh}</td><td>${costFA.toFixed(2)}</td></tr>`:''}
-                ${data.GGBS>0?`<tr><td>GGBS</td><td>${data.GGBS}</td><td>${costGGBS.toFixed(2)}</td></tr>`:''}
-                <tr><td>Water</td><td>${data.Water}</td><td>${costWater.toFixed(2)}</td></tr>
-                <tr><td>Aggregates</td><td>${data.Agg20 + data.Agg10}</td><td>${costAgg.toFixed(2)}</td></tr>
-                <tr><td>Sand</td><td>${data.Sand}</td><td>${costSand.toFixed(2)}</td></tr>
-                `
-
-                // CO2 Gauge
-                let co2 = data.co2
-                    
-                let color = '#22c55e' // green default
-                if(co2 > 400) color = '#ef4444'
-                else if(co2 > 250) color = '#f59e0b'
-                
-                if(co2Chart) co2Chart.destroy();
-                co2Chart = new Chart(document.getElementById('co2Gauge'),{
-                type:'doughnut',
-                data:{
-                datasets:[{
-                data:[co2, Math.max(0, 500-co2)],
-                backgroundColor:[color,'#e5e7eb'],
-                borderWidth:0
-                }]
-                },
-                options:{
-                rotation:-90,
-                circumference:180,
-                cutout:'70%',
-                plugins:{legend:{display:false}}
-                }
-                })
-
-                // Cost Chart
-                const costs = {
-                Cement: data.Cement * 7.0,
-                FlyAsh: data.FlyAsh * 1.5,
-                GGBS: data.GGBS * 3.0,
-                Aggregates: (data.Agg20 + data.Agg10) * 1.2,
-                Sand: data.Sand * 1.4,
-                Water: data.Water * 0.05
-                }
-                if(costChart) costChart.destroy();
-                costChart = new Chart(document.getElementById('costChart'),{
-                type:'doughnut',
-                data:{
-                labels:Object.keys(costs),
-                datasets:[{
-                data:Object.values(costs),
-                backgroundColor:[
-                '#166534',
-                '#3b82f6',
-                '#8b5cf6',
-                '#f97316',
-                '#eab308',
-                '#94a3b8'
-                ]
-                }]
-                },
-                options:{
-                plugins:{
-                legend:{
-                position:'bottom',
-                labels:{boxWidth:12}
-                }
-                }
-                }
-                })
-                const ctx = document.getElementById('mixChart').getContext('2d');
-                if (myChart) myChart.destroy();
-
-                myChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Cement', 'Fly Ash', 'GGBS', 'Water', 'Aggregates', 'Sand'],
-                        datasets: [{
-                            data: [
-                                data.Cement, 
-                                data.FlyAsh, 
-                                data.GGBS, 
-                                data.Water, 
-                                data.Agg20 + data.Agg10, 
-                                data.Sand
-                            ],
-                            backgroundColor: [
-                                '#16a34a', // Green
-                                '#64748b', // Gray
-                                '#94a3b8', // Light Gray
-                                '#3b82f6', // Blue
-                                '#f59e0b', // Orange
-                                '#eab308'  // Yellow
-                            ],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'right' }
-                        }
-                    }
-                });
-
-                document.getElementById('loading-state').style.display = 'none';
-                document.getElementById('results-area').style.display = 'block';
-                document.getElementById('btn-submit').innerText = "Generate Optimized Mix";
-                document.getElementById('btn-submit').disabled = false;
-
-            } catch (error) {
-                console.error(error);
-                alert("Optimization Failed. Please check inputs.");
-                document.getElementById('loading-state').style.display = 'none';
-                document.getElementById('welcome-msg').style.display = 'block';
-                document.getElementById('btn-submit').innerText = "Try Again";
-                document.getElementById('btn-submit').disabled = false;
-            }
+        if (
+            materialType === 'opc_fa' ||
+            materialType === 'opc_fa_ggbs' ||
+            materialType === 'opc_fa_metakaolin' ||
+            materialType === 'opc_all'
+        ) {
+            formData.append('has_fa', 'on');
         }
+
+        if (
+            materialType === 'opc_ggbs' ||
+            materialType === 'opc_fa_ggbs' ||
+            materialType === 'opc_ggbs_metakaolin' ||
+            materialType === 'opc_all'
+        ) {
+            formData.append('has_ggbs', 'on');
+        }
+
+        if (
+            materialType === 'opc_fa_metakaolin' ||
+            materialType === 'opc_ggbs_metakaolin' ||
+            materialType === 'opc_all'
+        ) {
+            formData.append('has_metakaolin', 'on');
+        }
+
+        try {
+            const response = await fetch('/optimize', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Backend error:", data);
+                throw new Error(data.error || "Server Error");
+            }
+
+            document.getElementById('res-cost').innerText = `₹${data.cost}`;
+            document.getElementById('res-co2').innerText = `${data.co2}`;
+            document.getElementById('res-strength').innerText = `${data.pred_strength} MPa`;
+
+            const tbody = document.getElementById('mix-table-body');
+
+            const costCement = data.Cement * 6.0;
+            const costFA = data.FlyAsh * 2.0;
+            const costGGBS = data.GGBS * 3.6;
+            const costMK = data.Metakaolin * 8.0;
+            const costWater = data.Water * 0.0;
+            const costAgg = data.CoarseAggregate * 1.05;
+            const costSand = data.Sand * 0.9;
+            const costAdmix = data.Admix * 45.0;
+
+            tbody.innerHTML = `
+            <tr><td>Cement</td><td>${data.Cement}</td><td>${costCement.toFixed(2)}</td></tr>
+            ${data.FlyAsh > 0 ? `<tr><td>Fly Ash</td><td>${data.FlyAsh}</td><td>${costFA.toFixed(2)}</td></tr>` : ''}
+            ${data.GGBS > 0 ? `<tr><td>GGBS</td><td>${data.GGBS}</td><td>${costGGBS.toFixed(2)}</td></tr>` : ''}
+            ${data.Metakaolin > 0 ? `<tr><td>Metakaolin</td><td>${data.Metakaolin}</td><td>${costMK.toFixed(2)}</td></tr>` : ''}
+            <tr><td>Water</td><td>${data.Water}</td><td>${costWater.toFixed(2)}</td></tr>
+            <tr><td>Coarse Aggregate</td><td>${data.CoarseAggregate}</td><td>${costAgg.toFixed(2)}</td></tr>
+            <tr><td>Sand</td><td>${data.Sand}</td><td>${costSand.toFixed(2)}</td></tr>
+            <tr><td>Admixture</td><td>${data.Admix}</td><td>${costAdmix.toFixed(2)}</td></tr>
+            `;
+
+            let co2 = data.co2;
+            let color = '#22c55e';
+            if (co2 > 400) color = '#ef4444';
+            else if (co2 > 250) color = '#f59e0b';
+
+            if (co2Chart) co2Chart.destroy();
+            co2Chart = new Chart(document.getElementById('co2Gauge'), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [co2, Math.max(0, 500 - co2)],
+                        backgroundColor: [color, '#e5e7eb'],
+                        borderWidth: 0
+                    }]
+                },  
+                options: {
+                    rotation: -90,
+                    circumference: 180,
+                    cutout: '70%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            const costs = {
+                Cement: costCement,
+                FlyAsh: costFA,
+                GGBS: costGGBS,
+                Metakaolin: costMK,
+                Aggregates: costAgg,
+                Sand: costSand,
+                Admixture: costAdmix
+            };
+
+        if (costChart) costChart.destroy();
+        costChart = new Chart(document.getElementById('costChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(costs),
+                datasets: [{
+                    data: Object.values(costs),
+                    backgroundColor: [
+                        '#166534',
+                        '#3b82f6',
+                        '#8b5cf6',
+                        '#ec4899',
+                        '#f97316',
+                        '#eab308',
+                        '#94a3b8'
+                    ]
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12 }
+                    }
+                }
+            }
+        });
+
+        const ctx = document.getElementById('mixChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Cement', 'Fly Ash', 'GGBS', 'Metakaolin', 'Water', 'Aggregates', 'Sand'],
+                datasets: [{
+                    data: [
+                        data.Cement,
+                        data.FlyAsh,
+                        data.GGBS,
+                        data.Metakaolin,
+                        data.Water,
+                        data.CoarseAggregate,
+                        data.Sand
+                    ],
+                    backgroundColor: [
+                        '#16a34a',
+                        '#64748b',
+                        '#94a3b8',
+                        '#ec4899',
+                        '#3b82f6',
+                        '#f59e0b',
+                        '#eab308'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('results-area').style.display = 'block';
+        document.getElementById('btn-submit').innerText = "Generate Optimized Mix";
+        document.getElementById('btn-submit').disabled = false;
+
+    } catch (error) {
+        console.error("Optimization failed:", error);
+        alert(`Optimization Failed: ${error.message}`);
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('welcome-msg').style.display = 'block';
+        document.getElementById('btn-submit').innerText = "Try Again";
+        document.getElementById('btn-submit').disabled = false;
+    }
+}
     </script>
 
     <footer class="app-footer">

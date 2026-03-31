@@ -1,57 +1,83 @@
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-df=pd.read_csv("data\FINAL_PROJECT_DATASET.csv")
+# Load dataset
+df = pd.read_csv("data/FINAL_PROJECT_DATASET.csv")
 
-"""EDA"""
 
-print(df["Strength"].describe())
+print("DATASET OVERVIEW")
+print(f"Rows    : {df.shape[0]}")
+print(f"Columns : {df.shape[1]}")
+print("\nCompressive Strength Summary:")
+print(df["Compressive_Strength_MPa"].describe())
 
-#Outlier Detection
-sns.boxplot(x=df["Strength"])
-plt.title("Outlier detection for Compression strength occupied in N days")
+
+# EDA - OUTLIER BOXPLOT
+plt.figure(figsize=(8, 4))
+sns.boxplot(x=df["Compressive_Strength_MPa"])
+plt.title("Outlier Detection for Compressive Strength")
+plt.tight_layout()
 plt.show()
 
-#Correlation matrixes
-attributes = ["Cement","GGBS", "FlyAsh", "Water", "CoarseAggregate", "Sand", "Admixture","age"]
-strength_cols = ["Strength"]
-for i in attributes:
-    print(f"Min of {i}: {df[i].min()}, Max of {i}: {df[i].max()}")
 
+# EDA - CORRELATION HEATMAP
+correlation_columns = [
+    "Cement_kg_m3",
+    "Fly_Ash_kg_m3",
+    "GGBS_kg_m3",
+    "metakolin_kg_m3",
+    "TCM",
+    "Water_kg_m3",
+    "water/TCM",
+    "Sand_kg_m3",
+    "AGE",
+    "admixture",
+    "Coarse aggregate",
+    "Compressive_Strength_MPa"
+]
 
-corr = df[attributes + strength_cols].corr()
-plt.figure(figsize=(12, 8))
-sns.heatmap(corr, annot=True, cmap="coolwarm", vmin=-1, vmax=1)
-plt.title("Correlation Matrix of Materials and Strength")
-plt.show()
-    
+corr_matrix = df[correlation_columns].corr()
 
-"""Feature Engineering"""
-#Creating features DataFrame
-df2=pd.DataFrame()
-
-# Total binder (cementitious materials)
-df2["Binder"] = df["Cement"] + df["GGBS"] + df["FlyAsh"]
-
-# Water–binder ratio
-df2["WBRatio"] = df["Water"] / df2["Binder"]
-
-# SCM contribution ratios
-df2["FA_ratio"] = df["FlyAsh"] / df2["Binder"]
-df2["GGBS_ratio"] = df["GGBS"] / df2["Binder"]
-
-# Aggregate packing structure
-df2["Sand_ratio"] = df["Sand"] / (df["Sand"] + df["CoarseAggregate"])
-
-# Aggregate skeleton strength
-df2["Agg_Binder"] = (df["Sand"] + df["CoarseAggregate"]) / df2["Binder"]
-
-# Paste volume (paste vs aggregate balance)
-df2["Paste_volume"] = (df["Water"] + df2["Binder"]) / (
-    df["Water"] + df2["Binder"] + df["Sand"] + df["CoarseAggregate"]
+plt.figure(figsize=(12, 9))
+sns.heatmap(
+    corr_matrix,
+    annot=True,
+    cmap="coolwarm",
+    vmin=-1,
+    vmax=1,
+    fmt=".2f"
 )
-df2["Strength"] = df["Strength"]
-df2["age"]=df["age"]
-# Save df_copy to a CSV file
+plt.title("Correlation Heatmap")
+plt.tight_layout()
+plt.show()
+
+# FEATURE ENGINEERING
+df2 = df.copy()
+
+# Core binder / SCM features
+df2["SCMContent"] = (
+    df2["Fly_Ash_kg_m3"] +
+    df2["GGBS_kg_m3"] +
+    df2["metakolin_kg_m3"]
+)
+
+df2["Binder"] = (
+    df2["Cement_kg_m3"] +
+    df2["SCMContent"]
+)
+
+# Important ratios
+df2["WBRatio"] = df2["Water_kg_m3"] / df2["Binder"]
+df2["AggregateToBinder"] = ( df2["Sand_kg_m3"] + df2["Coarse aggregate"]) / df2["Binder"]
+df2["AdmixtureToBinder"] = df2["admixture"] / df2["Binder"]
+
+
+# Clean infinite / NaN values
+df2 = df2.replace([np.inf, -np.inf], np.nan)
+df2 = df2.fillna(0)
+df2.drop(columns=["Density"], inplace=True)
+# Save processed dataset
 df2.to_csv("data/features.csv", index=False)
+print("FEATURE ENGINEERING COMPLETED")

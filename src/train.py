@@ -1,211 +1,157 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import time
+import warnings
 import joblib
-from copy import deepcopy
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor, AdaBoostRegressor
-from xgboost import XGBRegressor
-from sklearn.gaussian_process import GaussianProcessRegressor
-from catboost import CatBoostRegressor
-from sklearn.preprocessing import StandardScaler
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import train_test_split, RandomizedSearchCV, KFold
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, cross_val_score
+from sklearn.ensemble import RandomForestRegressor
+from catboost import CatBoostRegressor
+from xgboost import XGBRegressor
 
+warnings.filterwarnings("ignore")
 
-df = pd.read_csv(r"data\features.csv")
+# Load processed dataset
+df = pd.read_csv("data/features.csv")
 
-X = df[["Binder","WBRatio","FA_ratio","GGBS_ratio","Sand_ratio","Agg_Binder","Paste_volume", 'age']]
-y = df['Strength']
+FEATURE_COLUMNS = [
+    "Cement_kg_m3", "Fly_Ash_kg_m3", "GGBS_kg_m3", "metakolin_kg_m3",
+    "Water_kg_m3", "Sand_kg_m3", "AGE", "admixture", "Coarse aggregate",
+    "SCMContent", "Binder", "WBRatio", "AggregateToBinder", "AdmixtureToBinder",
+]
+TARGET_COLUMN = "Compressive_Strength_MPa"
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X = df[FEATURE_COLUMNS]
+y = df[TARGET_COLUMN]
 
-# --- Initial Model Comparison ---
-models = {
-    "RandomForest": Pipeline([
-        ('scaler', StandardScaler()),
-        ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))
-    ]),
-    "XGBoost": Pipeline([
-        ('scaler', StandardScaler()),
-        ('regressor', XGBRegressor(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42))
-    ]),
-    "AdaBoost": Pipeline([
-        ('scaler', StandardScaler()),
-        ('regressor', AdaBoostRegressor(n_estimators=100))
-    ]),
-    "CatBoost": Pipeline([ 
-        ('scaler', StandardScaler()), 
-        ('regressor', CatBoostRegressor(verbose=0, iterations=500)) 
-    ])
-}
+# ── Train/val/test split ──────────────────────────────────────────────────────
+# Hold out 15% as a clean test set never seen during tuning
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.15, random_state=42
+)
+# A further 15% of training data for early-stopping validation
+X_tr, X_val, y_tr, y_val = train_test_split(
+    X_train, y_train, test_size=0.15, random_state=42
+)
 
 results = []
-print("Training Initial Models...")
 
-for name, model in models.items():
-    model.fit(X_train, y_train)
-    preds = model.predict(X_test)
-
-    r2 = r2_score(y_test, preds)
-    mae = mean_absolute_error(y_test, preds)
-    rmse = np.sqrt(mean_squared_error(y_test, preds))
-
-    plt.figure(figsize=(6,6))
-
-    plt.scatter(y_test, preds, alpha=0.6)
-
-    # 45° perfect prediction line
-    min_val = min(y_test.min(), preds.min())
-    max_val = max(y_test.max(), preds.max())
-    plt.plot([min_val, max_val], [min_val, max_val], linestyle='--')
-
-    plt.xlabel("True Strength")
-    plt.ylabel("Predicted Strength")
-    plt.title(f"{name} Regression Performance")
-    plt.grid(True)
-
-
-    plt.text(min_val, max_val*0.95,
-         f"R² = {r2:.3f}\nMAE = {mae:.2f}\nRMSE = {rmse:.2f}",
-         fontsize=11,
-         bbox=dict(facecolor='white', alpha=0.6))
-
-    plt.show()
-
-    results.append({"Model": name, "R2": round(r2, 4), "MAE": round(mae, 4), "RMSE": round(rmse, 4)})
-    joblib.dump(model, f"models/{name.replace(' ', '_')}_pipeline.joblib")
-
-    print(f" > {name} trained.")
-
-
-results_df = pd.DataFrame(results).sort_values(by="R2", ascending=False)
-print("\n--- Model Performance Comparison ---")
-print(results_df)
-
-
-
-# Hyperparameter tuning
-# ================= MODEL CONFIGURATION =================
-
-model_configs = {
-    "CatBoost": {
-        "estimator": CatBoostRegressor(verbose=0, random_state=42),
-        "param_grid": {
-            'regressor__iterations': [300, 500, 800],
-            'regressor__depth': [4, 6, 8],
-            'regressor__learning_rate': [0.01, 0.05, 0.1],
-            'regressor__l2_leaf_reg': [1, 3, 5, 7]
-        },
-        "random_iter": 15
-    },
-
-    "XGBoost": {
-        "estimator": XGBRegressor(
-            objective='reg:squarederror',
-            random_state=42,
-            n_jobs=-1
-        ),
-        "param_grid": {
-            'regressor__n_estimators': [300, 600],
-            'regressor__max_depth': [4, 6],
-            'regressor__learning_rate': [0.03, 0.1],
-            'regressor__subsample': [0.8, 1.0],
-            'regressor__colsample_bytree': [0.8, 1.0]
-        },
-        "random_iter": 25
-    }
+# ── BASE MODEL COMPARISON ─────────────────────────────────────────────────────
+base_models = {
+    "RandomForest": RandomForestRegressor(
+        n_estimators=300, random_state=42, n_jobs=-1
+    ),
+    "XGBoost": XGBRegressor(
+        n_estimators=500, learning_rate=0.05, max_depth=6,
+        subsample=0.9, colsample_bytree=0.9,
+        objective="reg:squarederror", random_state=42, n_jobs=-1
+    ),
+    "CatBoost_Baseline": CatBoostRegressor(
+        iterations=500, learning_rate=0.05, depth=6,
+        verbose=0, random_state=42
+    ),
 }
 
+print("\nBase Model Comparison")
+print("-" * 60)
 
-# ================= PIPELINE CREATOR =================
+for name, model in base_models.items():
+    model.fit(X_train, y_train)          # full train split (no val leakage)
+    preds = model.predict(X_test)
 
-def create_pipeline(model, model_name):
-    if model_name == "CatBoost":
-        return Pipeline([
-            ('regressor', model)  # No scaling for CatBoost
-        ])
-    else:
-        return Pipeline([
-            ('scaler', StandardScaler()),
-            ('regressor', model)
-        ])
+    mae  = mean_absolute_error(y_test, preds)
+    rmse = np.sqrt(mean_squared_error(y_test, preds))
+    r2   = r2_score(y_test, preds)
 
+    joblib.dump(model, f"models/{name}.joblib")
+    results.append({"Model": name, "MAE": mae, "RMSE": rmse, "R2": r2})
+    print(f"{name:<22} | MAE: {mae:.4f} | RMSE: {rmse:.4f} | R2: {r2:.4f}")
 
-# ================= SEARCH FUNCTION =================
+# ── STEP 1 — find best n_estimators via early stopping ────────────────────────
+print("\n" + "-" * 60)
+print("Step 1 — Early stopping to find optimal n_estimators...")
+print("-" * 60)
 
-def run_search(model_name, config, X_train, y_train):
-    results = []
-    param_grid = deepcopy(config["param_grid"])   # Prevent mutation
-    pipeline = create_pipeline(config["estimator"], model_name)
+es_model = XGBRegressor(
+    objective="reg:squarederror",
+    n_estimators=2000,          # high ceiling — early stopping cuts it
+    learning_rate=0.05,
+    max_depth=6,
+    subsample=0.8,
+    colsample_bytree=0.8,
+    reg_alpha=0.1,
+    reg_lambda=1.0,
+    random_state=42,
+    n_jobs=-1,
+    early_stopping_rounds=50,
+    eval_metric="mae",
+)
 
-    # -------- GRID SEARCH --------
-    print(f"\n🔍 Grid Search — {model_name}")
-    start = time.time()
+es_model.fit(
+    X_tr, y_tr,
+    eval_set=[(X_val, y_val)],
+    verbose=100,
+)
 
-    grid = GridSearchCV(
-        pipeline,
-        param_grid,
-        cv=3,
-        n_jobs=-1,
-        scoring='r2',
-        error_score='raise',
-        verbose=1
-    )
-    grid.fit(X_train, y_train)
+best_n = es_model.best_iteration
+print(f"\nOptimal n_estimators: {best_n}")
 
-    results.append({
-        "Model": model_name,
-        "Method": "Grid Search",
-        "Best R2": grid.best_score_,
-        "Time (s)": time.time() - start
-    })
+# ── STEP 2 — RandomizedSearchCV with best_n fixed ─────────────────────────────
+print("\n" + "-" * 60)
+print("Step 2 — Tuning remaining hyperparameters (n_iter=80, cv=5)...")
+print("-" * 60)
 
-    # -------- RANDOM SEARCH --------
-    print(f"\n🎲 Random Search — {model_name}")
-    start = time.time()
+param_dist = {
+    "n_estimators":      [best_n],
+    "max_depth":         [3, 4, 5, 6, 7, 8],
+    "learning_rate":     [0.01, 0.03, 0.05, 0.07, 0.1],
+    "subsample":         [0.6, 0.7, 0.8, 0.9, 1.0],
+    "colsample_bytree":  [0.6, 0.7, 0.8, 0.9, 1.0],
+    "min_child_weight":  [1, 3, 5, 7, 10],
+    "gamma":             [0, 0.05, 0.1, 0.2, 0.3],
+    "reg_alpha":         [0, 0.01, 0.1, 0.5, 1.0],
+    "reg_lambda":        [0.5, 1.0, 1.5, 2.0, 5.0],
+}
 
-    random = RandomizedSearchCV(
-        pipeline,
-        param_grid,
-        n_iter=config["random_iter"],
-        cv=3,
-        n_jobs=-1,
-        scoring='r2',
-        random_state=42,
-        error_score='raise',
-        verbose=1
-    )
-    random.fit(X_train, y_train)
+random_search = RandomizedSearchCV(
+    estimator=XGBRegressor(
+        objective="reg:squarederror", random_state=42, n_jobs=-1
+    ),
+    param_distributions=param_dist,
+    n_iter=40,
+    scoring="neg_mean_absolute_error",
+    cv=KFold(n_splits=3, shuffle=True, random_state=42),
+    verbose=1,
+    random_state=42,
+    n_jobs=-1,
+)
 
-    results.append({
-        "Model": model_name,
-        "Method": "Random Search",
-        "Best R2": random.best_score_,
-        "Time (s)": time.time() - start
-    })
+random_search.fit(X_train, y_train)   # full train split for CV
 
-    # -------- SAVE BEST MODEL --------
-    best_model = grid.best_estimator_
-    path = f"models/Tuned_{model_name}.joblib"
-    joblib.dump(best_model, path)
+best_xgb   = random_search.best_estimator_
+best_preds = best_xgb.predict(X_test)
 
-    print(f"✅ {model_name} best model saved → {path}")
-    print(f"Best Parameters:\n{grid.best_params_}")
+best_mae  = mean_absolute_error(y_test, best_preds)
+best_rmse = np.sqrt(mean_squared_error(y_test, best_preds))
+best_r2   = r2_score(y_test, best_preds)
 
-    return results
+joblib.dump(best_xgb, "models/ConcreteAI_XGBoost_Best.joblib")
 
+results.append({
+    "Model": "XGBoost_Tuned", "MAE": best_mae, "RMSE": best_rmse, "R2": best_r2
+})
 
-# ================= RUN ALL MODELS =================
+print("\nTuned XGBoost Results")
+print("-" * 60)
+print(f"Best Parameters : {random_search.best_params_}")
+print(f"MAE             : {best_mae:.4f}")
+print(f"RMSE            : {best_rmse:.4f}")
+print(f"R2              : {best_r2:.4f}")
 
-all_results = []
+# ── FINAL SUMMARY ─────────────────────────────────────────────────────────────
+print("\n" + "=" * 60)
+print("All Models — Final Comparison")
+print("=" * 60)
 
-for model_name, config in model_configs.items():
-    all_results.extend(run_search(model_name, config, X_train, y_train))
-
-comparison_df = pd.DataFrame(all_results)
-
-print("\n📊 --- Overall Hyperparameter Tuning Comparison ---")
-print(comparison_df)
+results_df = pd.DataFrame(results).sort_values("MAE")
+print(results_df.to_string(index=False))
