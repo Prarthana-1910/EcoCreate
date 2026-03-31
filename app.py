@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from scipy.optimize import differential_evolution
 import pandas as pd
 import joblib
+import math
 
 app = Flask(__name__)
 
@@ -302,6 +303,9 @@ def calculate_co2(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix):
 def optimize():
     try:
         target_strength = float(request.form["target_strength"])
+        if not math.isfinite(target_strength):
+            raise ValueError("target_strength must be a finite number")
+
         age = 28
 
         has_fa = "has_fa" in request.form
@@ -442,7 +446,6 @@ def optimize():
                 + wb_penalty
             )
 
-        # Faster optimizer settings
         result = differential_evolution(
             objective,
             bounds,
@@ -503,6 +506,9 @@ def optimize():
             "MetakaolinPct": float(round(mix["mk_pct"] * 100, 2)),
         })
 
+    except ValueError as e:
+        print("VALIDATION ERROR:", e)
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         print("SERVER ERROR:", e)
         return jsonify({"error": str(e)}), 500
