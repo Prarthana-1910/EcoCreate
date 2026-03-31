@@ -15,9 +15,20 @@ except Exception as e:
 
 # -------- MODEL FEATURE ORDER --------
 FEATURE_ORDER = [
-    "Cement_kg_m3", "Fly_Ash_kg_m3", "GGBS_kg_m3", "metakolin_kg_m3",
-    "Water_kg_m3", "Sand_kg_m3", "AGE", "admixture", "Coarse aggregate",
-    "SCMContent", "Binder", "WBRatio", "AggregateToBinder", "AdmixtureToBinder",
+    "Cement_kg_m3",
+    "Fly_Ash_kg_m3",
+    "GGBS_kg_m3",
+    "metakolin_kg_m3",
+    "Water_kg_m3",
+    "Sand_kg_m3",
+    "AGE",
+    "admixture",
+    "Coarse aggregate",
+    "SCMContent",
+    "Binder",
+    "WBRatio",
+    "AggregateToBinder",
+    "AdmixtureToBinder",
 ]
 
 # ---------------- COST DATA (per kg) ----------------
@@ -63,7 +74,7 @@ def build_features(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix,
     aggregate_to_binder = (sand + coarse) / binder
     admixture_to_binder = admix / binder
 
-    row = pd.DataFrame([[ 
+    row = pd.DataFrame([[
         float(cement),
         float(flyash),
         float(ggbs),
@@ -85,7 +96,7 @@ def build_features(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix,
 
 # -------- GRADE-SPECIFIC RULES --------
 def get_grade_config(target_strength: float):
-    # M30 row as per your image/table
+    # M30
     if target_strength < 40:
         return {
             "tcm_range": (330, 360),
@@ -95,8 +106,8 @@ def get_grade_config(target_strength: float):
             "mk_pct_range": (0.00, 0.00),
             "water_bounds": (175, 205),
             "admix_bounds": (1.5, 5.0),
-            "sand_bounds": (620, 860),
-            "coarse_bounds": (1000, 1420),
+            "sand_bounds": (700, 850),
+            "coarse_bounds": (1100, 1420),
             "wb_max": 0.58,
             "sand_ratio_target": 0.38,
         }
@@ -110,8 +121,8 @@ def get_grade_config(target_strength: float):
             "mk_pct_range": (0.05, 0.07),
             "water_bounds": (170, 195),
             "admix_bounds": (2.0, 6.0),
-            "sand_bounds": (640, 860),
-            "coarse_bounds": (1000, 1420),
+            "sand_bounds": (700, 850),
+            "coarse_bounds": (1100, 1420),
             "wb_max": 0.55,
             "sand_ratio_target": 0.38,
         }
@@ -125,8 +136,8 @@ def get_grade_config(target_strength: float):
             "mk_pct_range": (0.07, 0.09),
             "water_bounds": (160, 185),
             "admix_bounds": (3.0, 8.0),
-            "sand_bounds": (620, 840),
-            "coarse_bounds": (1010, 1400),
+            "sand_bounds": (700, 850),
+            "coarse_bounds": (1100, 1400),
             "wb_max": 0.45,
             "sand_ratio_target": 0.37,
         }
@@ -140,8 +151,8 @@ def get_grade_config(target_strength: float):
             "mk_pct_range": (0.08, 0.11),
             "water_bounds": (150, 175),
             "admix_bounds": (4.0, 10.0),
-            "sand_bounds": (600, 820),
-            "coarse_bounds": (1020, 1380),
+            "sand_bounds": (700, 850),
+            "coarse_bounds": (1100, 1420),
             "wb_max": 0.40,
             "sand_ratio_target": 0.36,
         }
@@ -155,8 +166,8 @@ def get_grade_config(target_strength: float):
             "mk_pct_range": (0.09, 0.12),
             "water_bounds": (145, 170),
             "admix_bounds": (5.0, 12.0),
-            "sand_bounds": (580, 800),
-            "coarse_bounds": (1030, 1360),
+            "sand_bounds": (700, 850),
+            "coarse_bounds": (1100, 1360),
             "wb_max": 0.38,
             "sand_ratio_target": 0.35,
         }
@@ -170,12 +181,13 @@ def get_grade_config(target_strength: float):
             "mk_pct_range": (0.12, 0.15),
             "water_bounds": (140, 165),
             "admix_bounds": (6.0, 14.0),
-            "sand_bounds": (560, 780),
-            "coarse_bounds": (1040, 1340),
+            "sand_bounds": (700, 850),
+            "coarse_bounds": (1100, 1340),
             "wb_max": 0.35,
             "sand_ratio_target": 0.34,
         }
 
+    # 90 to 100 MPa
     return {
         "tcm_range": (560, 590),
         "cement_pct_range": (0.44, 0.47),
@@ -184,41 +196,29 @@ def get_grade_config(target_strength: float):
         "mk_pct_range": (0.12, 0.15),
         "water_bounds": (138, 160),
         "admix_bounds": (6.5, 15.0),
-        "sand_bounds": (540, 760),
-        "coarse_bounds": (1040, 1320),
+        "sand_bounds": (700, 850),
+        "coarse_bounds": (1100, 1320),
         "wb_max": 0.33,
         "sand_ratio_target": 0.33,
     }
 
 
-def get_selected_components(has_fa, has_ggbs, has_metakaolin):
-    selected = []
-    if has_fa:
-        selected.append("fa")
-    if has_ggbs:
-        selected.append("ggbs")
-    if has_metakaolin:
-        selected.append("mk")
-    return selected
-
-
 def build_optimizer_bounds(cfg, has_fa, has_ggbs, has_metakaolin):
-    bounds = [cfg["tcm_range"]]  # x[0] = TCM
+    bounds = [cfg["tcm_range"]]  # TCM always optimized
 
     if has_fa:
-        bounds.append(cfg["fa_pct_range"])     # x[1..] = selected SCM percentages
+        bounds.append(cfg["fa_pct_range"])
     if has_ggbs:
         bounds.append(cfg["ggbs_pct_range"])
     if has_metakaolin:
         bounds.append(cfg["mk_pct_range"])
 
     bounds.extend([
-        cfg["water_bounds"],   # water
-        cfg["coarse_bounds"],  # coarse
-        cfg["sand_bounds"],    # sand
-        cfg["admix_bounds"],   # admix
+        cfg["water_bounds"],
+        cfg["coarse_bounds"],
+        cfg["sand_bounds"],
+        cfg["admix_bounds"]
     ])
-
     return bounds
 
 
@@ -239,10 +239,13 @@ def decode_mix_from_vector(x, has_fa, has_ggbs, has_metakaolin):
     if has_metakaolin:
         idx += 1
 
-    water = float(x[idx]); idx += 1
-    coarse = float(x[idx]); idx += 1
-    sand = float(x[idx]); idx += 1
-    admix = float(x[idx]); idx += 1
+    water = float(x[idx])
+    idx += 1
+    coarse = float(x[idx])
+    idx += 1
+    sand = float(x[idx])
+    idx += 1
+    admix = float(x[idx])
 
     cement_pct = 1.0 - (fa_pct + ggbs_pct + mk_pct)
 
@@ -311,8 +314,6 @@ def optimize():
         cfg = get_grade_config(target_strength)
         bounds = build_optimizer_bounds(cfg, has_fa, has_ggbs, has_metakaolin)
 
-        selected_components = get_selected_components(has_fa, has_ggbs, has_metakaolin)
-
         def objective(x):
             mix = decode_mix_from_vector(x, has_fa, has_ggbs, has_metakaolin)
 
@@ -333,49 +334,44 @@ def optimize():
 
             binder = cement + flyash + ggbs + metakaolin
 
-            # Strict: binder must exactly be TCM
+            # Strict binder = TCM
             if abs(binder - tcm) > 1e-6:
                 return 1e12
 
-            # Strict: cement cannot be negative or zero
             if cement <= 0:
                 return 1e12
 
-            # Strict: only OPC selected => TCM = OPC
+            # Only OPC selected => TCM = OPC exactly
             if not has_fa and not has_ggbs and not has_metakaolin:
                 if abs(cement - tcm) > 1e-6:
                     return 1e12
 
-            # Strict percentage validity
+            # Strict SCM ranges only for selected materials
             if has_fa:
                 if not (cfg["fa_pct_range"][0] <= fa_pct <= cfg["fa_pct_range"][1]):
                     return 1e12
             else:
-                if flyash != 0:
+                if abs(flyash) > 1e-8:
                     return 1e12
 
             if has_ggbs:
                 if not (cfg["ggbs_pct_range"][0] <= ggbs_pct <= cfg["ggbs_pct_range"][1]):
                     return 1e12
             else:
-                if ggbs != 0:
+                if abs(ggbs) > 1e-8:
                     return 1e12
 
             if has_metakaolin:
                 if not (cfg["mk_pct_range"][0] <= mk_pct <= cfg["mk_pct_range"][1]):
                     return 1e12
             else:
-                if metakaolin != 0:
+                if abs(metakaolin) > 1e-8:
                     return 1e12
 
-            # When all 4 binder materials are selected, cement must also stay in its strict range.
+            # If all four are selected, cement must also stay within strict range
             if has_fa and has_ggbs and has_metakaolin:
                 if not (cfg["cement_pct_range"][0] <= cement_pct <= cfg["cement_pct_range"][1]):
                     return 1e12
-
-            # When not all SCMs are selected, remaining TCM becomes cement automatically.
-            # Example: OPC + GGBS => cement_pct = 1 - ggbs_pct
-            # This is already enforced by construction above.
 
             if binder <= 0:
                 return 1e12
@@ -400,7 +396,6 @@ def optimize():
             lower = target_strength
             upper = target_strength * 1.05
 
-            # Strong strength control
             if pred_strength < lower:
                 deficit = lower - pred_strength
                 strength_penalty = 250000 + (deficit ** 2) * 12000
@@ -414,7 +409,7 @@ def optimize():
             cost = calculate_cost(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix)
             co2 = calculate_co2(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix)
 
-            # Admixture lower limit based on binder
+            # Minimum admixture requirement
             if target_strength < 50:
                 req_pct = 0.8 / 100.0
             elif target_strength < 70:
@@ -447,15 +442,18 @@ def optimize():
                 + wb_penalty
             )
 
+        # Faster optimizer settings
         result = differential_evolution(
             objective,
             bounds,
             strategy="best1bin",
-            maxiter=350,
-            popsize=24,
-            tol=0.0015,
+            maxiter=60,
+            popsize=8,
+            tol=0.01,
             seed=42,
-            polish=True,
+            polish=False,
+            updating="deferred",
+            workers=1
         )
 
         mix = decode_mix_from_vector(result.x, has_fa, has_ggbs, has_metakaolin)
