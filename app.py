@@ -26,7 +26,7 @@ COST = {
     "GGBS": 3.6,
     "FlyAsh": 2.0,
     "Metakaolin": 8.0,
-    "Water": 0.0,
+    "Water": 0.1,
     "CoarseAggregate": 1.05,
     "Sand": 0.9,
     "Admixture": 45.0,
@@ -55,6 +55,7 @@ def home():
 def build_features(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix, age):
     scm_content = flyash + ggbs + metakaolin
     binder = cement + scm_content
+
     if binder <= 0:
         return None
 
@@ -63,22 +64,27 @@ def build_features(cement, flyash, ggbs, metakaolin, water, coarse, sand, admix,
     admixture_to_binder = admix / binder
 
     row = pd.DataFrame([[
-        cement, flyash, ggbs, metakaolin,
-        water, sand, age, admix, coarse,
-        scm_content, binder, wb_ratio,
-        aggregate_to_binder, admixture_to_binder
+        float(cement),
+        float(flyash),
+        float(ggbs),
+        float(metakaolin),
+        float(water),
+        float(sand),
+        float(age),
+        float(admix),
+        float(coarse),
+        float(scm_content),
+        float(binder),
+        float(wb_ratio),
+        float(aggregate_to_binder),
+        float(admixture_to_binder)
     ]], columns=FEATURE_ORDER)
 
-    return row
+    return row[FEATURE_ORDER].astype(float)
 
 
 # -------- GRADE-SPECIFIC RULES --------
 def get_grade_config(target_strength: float):
-    """
-    Returns grade-wise design rules.
-    Percentages below are fractions of TOTAL BINDER.
-    """
-    # Conservative fallback for grades below 40 MPa
     if target_strength < 40:
         return {
             "tcm_range": (360, 400),
@@ -92,7 +98,7 @@ def get_grade_config(target_strength: float):
             "coarse_bounds": (1000, 1420),
             "wb_max": 0.58,
             "binder_range": (360, 420),
-            "sand_ratio_target": 0.38,   # sand / total aggregate
+            "sand_ratio_target": 0.38,
         }
 
     if 40 <= target_strength < 50:
@@ -175,7 +181,6 @@ def get_grade_config(target_strength: float):
             "sand_ratio_target": 0.34,
         }
 
-    # 90 to 100 MPa
     return {
         "tcm_range": (560, 590),
         "cement_pct_range": (0.44, 0.47),
@@ -197,11 +202,6 @@ def midpoint(rng):
 
 
 def compute_selected_scm_targets(cfg, has_fa, has_ggbs, has_metakaolin):
-    """
-    Builds practical SCM target shares for the selected materials only.
-    If some SCMs are unavailable, their share is redistributed proportionally
-    among the selected SCMs.
-    """
     fa_mid = midpoint(cfg["fa_pct_range"])
     ggbs_mid = midpoint(cfg["ggbs_pct_range"])
     mk_mid = midpoint(cfg["mk_pct_range"])
@@ -224,7 +224,6 @@ def compute_selected_scm_targets(cfg, has_fa, has_ggbs, has_metakaolin):
             "mk_share": 0.0,
         }
 
-    # Total SCM target comes from cement target band
     cement_mid = midpoint(cfg["cement_pct_range"])
     target_total_scm = 1.0 - cement_mid
 
@@ -253,11 +252,9 @@ def optimize():
         cfg = get_grade_config(target_strength)
         scm_targets = compute_selected_scm_targets(cfg, has_fa, has_ggbs, has_metakaolin)
 
-        # -------- BOUNDS --------
         tcm_min, tcm_max = cfg["tcm_range"]
         cement_pct_min, cement_pct_max = cfg["cement_pct_range"]
 
-        # Cement bounds derived from grade-wise TCM and cement %
         cement_bounds = (
             tcm_min * cement_pct_min,
             tcm_max * cement_pct_max
@@ -268,9 +265,7 @@ def optimize():
         sand_bounds = cfg["sand_bounds"]
         coarse_bounds = cfg["coarse_bounds"]
 
-        # SCM bounds
         if has_fa:
-            # Wider upper bound to allow optimizer flexibility
             fa_bounds = (
                 max(20.0, tcm_min * cfg["fa_pct_range"][0] * 0.85),
                 tcm_max * cfg["fa_pct_range"][1] * 1.25
@@ -287,31 +282,31 @@ def optimize():
             ggbs_bounds = (0.0, 1e-6)
 
         if has_metakaolin:
-            gg = cfg["mk_pct_range"]
+            mk_range = cfg["mk_pct_range"]
             mk_bounds = (
-                max(10.0, tcm_min * gg[0] * 0.80),
-                tcm_max * gg[1] * 1.20
+                max(10.0, tcm_min * mk_range[0] * 0.80),
+                tcm_max * mk_range[1] * 1.20
             )
         else:
             mk_bounds = (0.0, 1e-6)
 
         bounds = [
-            cement_bounds,   # Cement
-            fa_bounds,       # Fly Ash
-            ggbs_bounds,     # GGBS
-            mk_bounds,       # Metakaolin
-            water_bounds,    # Water
-            coarse_bounds,   # Coarse Aggregate
-            sand_bounds,     # Sand
-            admix_bounds     # Admixture
+            cement_bounds,
+            fa_bounds,
+            ggbs_bounds,
+            mk_bounds,
+            water_bounds,
+            coarse_bounds,
+            sand_bounds,
+            admix_bounds
         ]
 
-        # -------- OBJECTIVE FUNCTION --------
         def objective(x):
             cement, flyash, ggbs, metakaolin, water, coarse, sand, admix = x
 
             scm_content = flyash + ggbs + metakaolin
             binder = cement + scm_content
+
             if binder <= 0:
                 return 1e9
 
@@ -319,21 +314,17 @@ def optimize():
             total_agg = sand + coarse
             sand_ratio = sand / total_agg if total_agg > 0 else 0.0
 
-            # ---------- HARD CONSTRAINTS ----------
             binder_min, binder_max = cfg["binder_range"]
             if not (binder_min <= binder <= binder_max):
                 return 1e8
 
-            # TCM hard constraint
             if not (tcm_min <= binder <= tcm_max):
                 return 1e8
 
-            # Cement hard-ish constraint from grade-wise rules
             cement_pct = cement / binder
             if not (cement_pct_min - 0.015 <= cement_pct <= cement_pct_max + 0.015):
                 return 5e7 + abs(cement_pct - midpoint(cfg["cement_pct_range"])) * 1e6
 
-            # W/B upper cap by grade
             if wbr > cfg["wb_max"]:
                 return 1e8
 
@@ -341,12 +332,13 @@ def optimize():
                 cement, flyash, ggbs, metakaolin,
                 water, coarse, sand, admix, age
             )
+
             if features is None:
                 return 1e9
 
+            features = features[FEATURE_ORDER].astype(float)
             pred_strength = float(model.predict(features)[0])
 
-            # ---------- TARGET STRENGTH BAND ----------
             lower = target_strength
             upper = target_strength * 1.05
 
@@ -360,7 +352,6 @@ def optimize():
                 mid = (lower + upper) / 2.0
                 strength_penalty = abs(pred_strength - mid) * 80
 
-            # ---------- COST & CO2 ----------
             cost = (
                 cement * COST["Cement"] +
                 ggbs * COST["GGBS"] +
@@ -383,7 +374,6 @@ def optimize():
                 admix * CO2["Admixture"]
             )
 
-            # ---------- SCM TOTAL FRACTION ----------
             scm_penalty = 0.0
             target_total_scm = scm_targets["target_total_scm"]
             actual_total_scm = scm_content / binder if binder > 0 else 0.0
@@ -391,7 +381,6 @@ def optimize():
             if target_total_scm > 0:
                 scm_penalty += abs(actual_total_scm - target_total_scm) * 40000
 
-            # ---------- SELECTED SCM DISTRIBUTION ----------
             share_penalty = 0.0
             if scm_content > 1e-6 and target_total_scm > 0:
                 fa_share = flyash / scm_content
@@ -405,7 +394,6 @@ def optimize():
                 if has_metakaolin:
                     share_penalty += abs(mk_share - scm_targets["mk_share"]) * 22000
 
-            # Practical minimum selected quantity penalties
             if has_fa and flyash < 25:
                 share_penalty += (25 - flyash) * 1200
             if has_ggbs and ggbs < 25:
@@ -413,15 +401,11 @@ def optimize():
             if has_metakaolin and metakaolin < 10:
                 share_penalty += (10 - metakaolin) * 2000
 
-            # ---------- CEMENT TARGET PENALTY ----------
             cement_penalty = abs(cement_pct - midpoint(cfg["cement_pct_range"])) * 45000
 
-            # ---------- W/B GUIDANCE ----------
             wb_target = min(cfg["wb_max"] - 0.02, max(0.26, 0.60 - target_strength * 0.0038))
             wb_penalty = abs(wbr - wb_target) * 700
 
-            # ---------- ADMIXTURE GUIDANCE ----------
-            # Approx practical dose as percentage of binder
             if target_strength < 50:
                 req_pct = 0.8 / 100.0
             elif target_strength < 70:
@@ -432,12 +416,9 @@ def optimize():
             min_admix = binder * req_pct
             admix_penalty = max(0.0, min_admix - admix) * 2500
 
-            # ---------- SAND VARIATION / AGGREGATE BALANCE ----------
-            # Wider bounds already added; this penalty prevents sand collapsing
             sand_ratio_target = cfg["sand_ratio_target"]
             sand_ratio_penalty = abs(sand_ratio - sand_ratio_target) * 8000
 
-            # Also keep aggregate-to-binder in a practical band
             agg_binder = total_agg / binder if binder > 0 else 99
             agg_penalty = 0.0
             if agg_binder < 2.4:
@@ -445,7 +426,6 @@ def optimize():
             elif agg_binder > 4.2:
                 agg_penalty += (agg_binder - 4.2) * 6000
 
-            # ---------- FINAL OBJECTIVE ----------
             return (
                 strength_penalty
                 + 0.08 * cost
@@ -459,7 +439,6 @@ def optimize():
                 + agg_penalty
             )
 
-        # -------- RUN OPTIMIZER --------
         result = differential_evolution(
             objective,
             bounds,
@@ -477,6 +456,11 @@ def optimize():
             cement, flyash, ggbs, metakaolin,
             water, coarse, sand, admix, age
         )
+
+        if final_features is None:
+            raise Exception("Final feature generation failed.")
+
+        final_features = final_features[FEATURE_ORDER].astype(float)
         pred_strength = float(model.predict(final_features)[0])
 
         pure_cost = (
