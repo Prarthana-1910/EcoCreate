@@ -139,7 +139,7 @@
         /* --- ESTIMATOR PAGE --- */
         .estimator-layout {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
+            grid-template-columns: 0.9fr 1.6fr;
             gap: 50px;
             max-width: 1400px;
             margin: 0 auto;
@@ -269,7 +269,39 @@
             text-align:center;
             margin-bottom:12px;
         }
+        
+        .gauge-wrapper{
+            position:relative;
+            width:100%;
+            height:240px;
+        }
 
+        .gauge-wrapper canvas{
+            position:absolute;
+            top:0;
+            left:0;
+        }
+
+        .gauge-center{
+            position:absolute;
+            top:58%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            text-align:center;
+            pointer-events:none;
+        }
+
+        #co2-score{
+            font-size:1.4rem;
+            font-weight:800;
+            color:#0f172a;
+        }
+
+        #co2-label{
+            font-size:0.8rem;
+            color:#64748b;
+            margin-top:2px;
+        }
         .gauge-note{
             text-align:center;
             font-size:0.8rem;
@@ -455,7 +487,13 @@
 
                     <div class="chart-card">
                     <h4>CO₂ Impact Score</h4>
-                    <canvas id="co2Gauge"></canvas>
+                    <div class="gauge-wrapper">
+                        <canvas id="co2Gauge"></canvas>
+                        <div class="gauge-center">
+                            <div id="co2-score">0</div>
+                            <div id="co2-label">Low Impact</div>
+                        </div>
+                    </div>
                     <p class="gauge-note">Compared to conventional OPC mix</p>
                     </div>
 
@@ -593,10 +631,29 @@
 
                 // CO2 Gauge
                 let co2 = data.co2
-                    
-                let color = '#22c55e' // green default
-                if(co2 > 400) color = '#ef4444'
-                else if(co2 > 250) color = '#f59e0b'
+                let color = '#22c55e'
+                let label = "Low Impact"
+
+                if(co2 >= 400){
+                    color = '#ef4444'
+                    label = "High CO₂"
+                }
+                else if(co2 >= 250){
+                    color = '#f59e0b'
+                    label = "Moderate"
+                }
+
+                document.getElementById("co2-score").innerText = co2
+                document.getElementById("co2-label").innerText = label
+
+                const tip = document.getElementById("tip-text");
+
+                if(co2 < 250)
+                tip.innerText = "Excellent low-carbon mix. Suitable for green building certification.";
+                else if(co2 < 400)
+                tip.innerText = "Moderate carbon footprint. Consider increasing SCM content.";
+                else
+                tip.innerText = "High CO₂ mix. Replace cement with Fly Ash or GGBS.";
                 
                 if(co2Chart) co2Chart.destroy();
                 co2Chart = new Chart(document.getElementById('co2Gauge'),{
