@@ -241,7 +241,7 @@ def compute_selected_scm_targets(cfg, has_fa, has_ggbs, has_metakaolin):
 def optimize():
     try:
         target_strength = float(request.form["target_strength"])
-        age = int(request.form["target_days"])
+        age = 28
 
         has_fa = "has_fa" in request.form
         has_ggbs = "has_ggbs" in request.form

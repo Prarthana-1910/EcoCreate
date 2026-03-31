@@ -411,7 +411,7 @@
                     <input type="number" id="inp_strength" placeholder="e.g. 40" min="5" step="5" required>
 
                     <label>Target Days</label>
-                    <input type="number" id="inp_days" placeholder="e.g. 28" min="28" required>
+                        <input type="number" id="inp_days" value="28" readonly required>
 
                     <label>Available Materials</label>
                     <select id="inp_materials">
@@ -528,7 +528,7 @@
             document.getElementById('btn-submit').disabled = true;
 
             const strength = document.getElementById('inp_strength').value;
-            const days = document.getElementById('inp_days').value;
+            const days = document.getElementById('inp_days').value=28;
             const materialType = document.getElementById('inp_materials').value;
 
             const formData = new FormData();
